@@ -94,16 +94,32 @@ int main(void)
 	
 	while(1)
 	{
-		if(!gps_get_pos(&lat, &lon, &alt))
+
+		/*Set the GPS navmode every 10 strings */
+		if(count % 10 == 0)
 		{
-			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",No or invalid GPS response\n"));
-			continue;
-		}
 		
-		if(!gps_get_time(&hour, &minute, &second))
+			/*mode 6 is "Airborne with <1g Acceleration" */
+			if(gps_set_nav(6) != GPS_OK)
+			{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",Error setting GPS navmode\n"));
+
+			}
+
+		}
+
+			/*Get the latitude and longitude */		
+			if(gps_get_pos(&lat, &lon, &alt) != GPS_OK)
 		{
 			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",No or invalid GPS response\n"));
-			continue;
+			lat = lon = alt = 0;
+		}
+
+			/*Get the GPS time*/
+			if(gps_get_time(&hour, &minute, &second) != GPS_OK)
+		{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",No or invalid GPS response\n"));
+			hour = minute = second =0;
 		}
 
 
