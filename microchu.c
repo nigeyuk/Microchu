@@ -137,7 +137,7 @@ int main(void)
 			alt / 1000,
 			temp / 10000, labs(temp) / 1000 % 10,
 			(geofence_uk(lat, lon) ? '1' : '0'));
-		crccat(msg + 2);
+		crccat(msg + 4);
 		rtx_string(msg);
 	}
 }
