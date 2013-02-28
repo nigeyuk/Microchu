@@ -54,6 +54,9 @@ int main(void)
 	/* Set the LED pin for output */
 	DDRB |= _BV(DDB5);
 	
+	/* Turn on the LED (Debug only, Disable for flight) */
+	LEDBIT(1);
+
 	rtx_init();
 
 	sei();
@@ -119,7 +122,7 @@ int main(void)
 			if(gps_get_time(&hour, &minute, &second) != GPS_OK)
 		{
 			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",No or invalid GPS response\n"));
-			hour = minute = second =0;
+			hour = minute = second = 0;
 		}
 
 
@@ -129,7 +132,7 @@ int main(void)
 		
 		rtx_wait();
 		
-		snprintf(msg, 100, "$$$$%s,%li,%02i:%02i:%02i,%s%li.%05li,%s%li.%05li,%li,%li.%01li,%c",
+		snprintf(msg, 100, "$$%s,%li,%02i:%02i:%02i,%s%li.%05li,%s%li.%05li,%li,%li.%01li,%c",
 			RTTY_CALLSIGN, count++,
 			hour, minute, second,
 			(lat < 0 ? "-" : ""), labs(lat) / 10000000, labs(lat) % 10000000 / 100,
@@ -137,7 +140,7 @@ int main(void)
 			alt / 1000,
 			temp / 10000, labs(temp) / 1000 % 10,
 			(geofence_uk(lat, lon) ? '1' : '0'));
-		crccat(msg + 4);
+		crccat(msg + 2);
 		rtx_string(msg);
 	}
 }

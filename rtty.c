@@ -22,6 +22,7 @@
 #include <avr/pgmspace.h>
 #include <string.h>
 #include "rtty.h"
+#include "timeout.h"
 
 /* 1 Pin Rtty Config */
 #define TXPIN 		(1 << 0) /* PC0 */
@@ -57,6 +58,9 @@ ISR(TIMER0_COMPA_vect)
 		else byte = pgm_read_byte(txbuf++);
 		txlen--;
 	}
+
+	/* Timeout tick */
+	to_tick(RTTY_BAUD);
 }
 
 void rtx_enable(char en)
