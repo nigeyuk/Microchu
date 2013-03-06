@@ -55,7 +55,7 @@ int main(void)
 	DDRB |= _BV(DDB5);
 	
 	/* Turn on the LED (Debug only, Disable for flight) */
-	LEDBIT(1);
+	//LEDBIT(1);
 
 	rtx_init();
 
