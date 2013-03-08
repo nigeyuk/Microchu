@@ -45,9 +45,10 @@ uint16_t crccat(char *msg)
 
 int main(void)
 {
-	uint32_t count = 0;
+	uint32_t pacc, count = 0;
 	int32_t lat, lon, alt, temp;
-	uint8_t hour, minute, second;
+	uint8_t hour, minute, second, lock, sats;
+	uint16_t pdop;
 	char msg[100];
 	uint8_t i, r;
 	
@@ -125,6 +126,13 @@ int main(void)
 			hour = minute = second = 0;
 		}
 
+			/*Get number of sats*/
+			if(gps_get_lock(&lock, &pacc, &pdop, &sats) != GPS_OK)
+		{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",No or invalid GPS response\n"));
+			lock = pacc = pdop = sats = 0;
+
+		}
 
 
 		/* Read the temperature from sensor 0 */
@@ -132,15 +140,26 @@ int main(void)
 		
 		rtx_wait();
 		
-		snprintf(msg, 100, "$$%s,%li,%02i:%02i:%02i,%s%li.%05li,%s%li.%05li,%li,%li.%01li,%c",
+		snprintf(msg, 100, "$$%s,%li,%02i:%02i:%02i,%s%li.%05li,%s%li.%05li,%li,%li.%01li,%i,%i,%c",
 			RTTY_CALLSIGN, count++,
 			hour, minute, second,
 			(lat < 0 ? "-" : ""), labs(lat) / 10000000, labs(lat) % 10000000 / 100,
 			(lon < 0 ? "-" : ""), labs(lon) / 10000000, labs(lon) % 10000000 / 100,
 			alt / 1000,
 			temp / 10000, labs(temp) / 1000 % 10,
+			sats,
+			lock,
 			(geofence_uk(lat, lon) ? '1' : '0'));
 		crccat(msg + 2);
 		rtx_string(msg);
+
+		/* Powersaving test */
+		if((count % 50 == 0) && (lock >= 3) && (hour >= 19))
+		{
+			int i;
+			rtx_enable(0);
+			for(i = 0; i < 60; i++) _delay_ms(1000);
+			rtx_enable(1);
+		}
 	}
 }
