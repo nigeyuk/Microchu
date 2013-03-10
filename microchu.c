@@ -47,7 +47,7 @@ int main(void)
 {
 	uint32_t pacc, count = 0;
 	int32_t lat, lon, alt, temp;
-	uint8_t hour, minute, second, lock, sats;
+	uint8_t hour, minute, second, lock, sats, psm;
 	uint16_t pdop;
 	char msg[100];
 	uint8_t i, r;
@@ -96,6 +96,8 @@ int main(void)
 	}
 	rtx_string_P(PSTR("....Done\n"));
 	
+	psm = 0;
+
 	while(1)
 	{
 
@@ -112,6 +114,13 @@ int main(void)
 
 		}
 
+			/*Check if we have a lock and enable powersaving*/
+			if(gps_get_psm(&psm) != GPS_OK)
+		{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",Error Reading Powersaving\n"));
+			//psm = 0xFF;
+		}
+		
 			/*Get the latitude and longitude */		
 			if(gps_get_pos(&lat, &lon, &alt) != GPS_OK)
 		{
@@ -140,7 +149,7 @@ int main(void)
 		
 		rtx_wait();
 		
-		snprintf(msg, 100, "$$%s,%li,%02i:%02i:%02i,%s%li.%05li,%s%li.%05li,%li,%li.%01li,%i,%i,%c",
+		snprintf(msg, 100, "$$%s,%li,%02i:%02i:%02i,%s%li.%05li,%s%li.%05li,%li,%li.%01li,%i,%i,%i,%c",
 			RTTY_CALLSIGN, count++,
 			hour, minute, second,
 			(lat < 0 ? "-" : ""), labs(lat) / 10000000, labs(lat) % 10000000 / 100,
@@ -149,12 +158,38 @@ int main(void)
 			temp / 10000, labs(temp) / 1000 % 10,
 			sats,
 			lock,
+			psm,
 			(geofence_uk(lat, lon) ? '1' : '0'));
 		crccat(msg + 2);
 		rtx_string(msg);
+		
+		/* Set the GPS to Powersave mode, cyclic if we have a lock*/
+		if(psm != 1 && sats >= 4)
+                {
+                        if(gps_set_psm(1) != GPS_OK)
+                        {
+                        rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",Error setting Powersave Mode\n"));
+                        }
+			else
+			{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",GPS Now In Powersaving Mode\n"));
+			}
+                }
 
+		else if(psm != 0 && sats < 4)
+		{
+			if(gps_set_psm(0) != GPS_OK)
+			{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",Error setting Max Performance Mode\n"));
+			}
+			else
+			{
+			rtx_string_P(PSTR("$$$$" RTTY_CALLSIGN ",GPS Now In Max Performance Mode\n"));
+			}
+		}
+	
 		/* Powersaving test */
-		if((count % 50 == 0) && (lock >= 3) && (hour >= 19))
+		if((count % 50 == 0) && (lock >= 3) && (hour >= 19 || hour < 7))
 		{
 			int i;
 			rtx_enable(0);

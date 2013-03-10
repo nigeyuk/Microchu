@@ -3,6 +3,6 @@
 
 #define F_CPU (8000000)
 #define RTTY_CALLSIGN "MicroChu-1"
-#define RTTY_BAUD (300)
+#define RTTY_BAUD (50)
 
 #endif

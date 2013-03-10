@@ -49,5 +49,6 @@ extern int gps_set_nav(uint8_t nav);
 extern int gps_get_nav(uint8_t *nav);
 
 extern int gps_set_psm(uint8_t psm);
+extern int gps_get_psm(uint8_t *psm);
 
 #endif /*__GPS_H__ */

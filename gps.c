@@ -366,3 +366,21 @@ int gps_set_psm(uint8_t psm)
 	return(r);
 }
 
+int gps_get_psm(uint8_t *psm)
+{
+	int r;
+
+	/* Transmit the request and read response */
+	gps_send_packet(UBX_CLASS_CFG, 0x11, 0, 0);
+	r = gps_get_packet_type(UBX_CLASS_CFG, 0x11, _buf, 2, 500);
+	if(r !=GPS_OK) return(r);
+
+	/* Parse Response */
+	if(psm) *psm = _buf[1];
+
+	/* The response is followed by an ACK-ACK */
+	r = gps_get_ack(UBX_CLASS_CFG, 0x11, 500);
+
+	return(GPS_OK);
+
+}
