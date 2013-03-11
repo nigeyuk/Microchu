@@ -62,7 +62,9 @@ int main(void)
 
 	sei();
 	
-	gps_setup();	
+	gps_setup();
+
+	psm = 0;
 	
 	/* Enable the radio and let it settle */
 	rtx_enable(1);
@@ -96,7 +98,6 @@ int main(void)
 	}
 	rtx_string_P(PSTR("....Done\n"));
 	
-	psm = 0;
 
 	while(1)
 	{
@@ -189,7 +190,7 @@ int main(void)
 		}
 	
 		/* Powersaving test */
-		if((count % 50 == 0) && (lock >= 3) && (hour >= 19 || hour < 7))
+		if((count % 50 == 0) && (sats >= 4) && (hour >= 19 || hour < 7))
 		{
 			int i;
 			rtx_enable(0);
